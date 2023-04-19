@@ -3,18 +3,21 @@ function draw(x, y) {
 	var ctx = c.getContext("2d");
 	
 	ctx.clearRect(0, 0, c.width, c.height);
+    ctx.drawImage(window.album_img, x, y);
 	ctx.beginPath();
-	
-	ctx.rect(x, y, 150, 100, 100);
-	ctx.fillStyle = "red";
-	ctx.fill();
+
 	ctx.stroke();
 }
 
 function init() {
+    window.album_img = new Image();
+
 	setupCanvas();
-	draw();
 	requestAnimationFrame(tick);
+
+    window.album_img.src = 'data:image/gif;base64,R0lGODlhCwALAIAAAAAA3pn/ZiH5BAEAAAEALAAAAAALAAsAAAIUhA+hkcuO4lmNVindo7qyrIXiGBYAOw==';
+
+	draw()
 	
 	document.addEventListener("mousemove", function(event) {
 		
