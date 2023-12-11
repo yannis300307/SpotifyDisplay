@@ -2,7 +2,9 @@
 	<script>
 		let expires = (new Date()).getTime() + %%EXPIRES%%;
 		document.cookie = "access_token=%%ACCESS_TOKEN%%";
-		document.cookie = "refresh_token=%%REFRESH_TOKEN%%";
+		if ("%%REFRESH_TOKEN%%"){
+			document.cookie = "refresh_token=%%REFRESH_TOKEN%%";
+		}
 		document.cookie = "expires="+String(expires);
 		document.location.href = "../main";
 	</script>

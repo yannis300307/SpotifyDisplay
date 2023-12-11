@@ -2,11 +2,13 @@
 <html>
 	<head>
 		<link rel="stylesheet" href="../style.css" />
-		<script src="../page.js"></script>
-		<script src="../requester.js"></script>
+		<script type="module" src="../utils.js"></script>
+		<script type="module" src="../page.js"></script>
+		<script type="module" src="../requester.js"></script>
 	</head>
 	
 	<body onload="init();">
 		<canvas id="card" width=0 height=0></canvas>
+		<button onclick="authenticate();">Se Connecter</button>
 	</body>
 </html>

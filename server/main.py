@@ -2,12 +2,13 @@ import base64
 import json
 import urllib.parse
 from http.server import BaseHTTPRequestHandler, HTTPServer
-import time
 from urllib import request
 
 
-hostName = "192.168.1.20"
+hostName = "localhost"
 serverPort = 8888
+
+web_server_address = "http://" + hostName + ":" + str(serverPort)
 
 client_id = "ca1baed0e6a34e9bab089c7555cb8fe0"
 client_secret = "c8a4a25eaf5b468b88f93e372b63cb86"
@@ -25,12 +26,17 @@ with open("../webClient/page.js", "r") as f:
     f.close()
 
 with open("../webClient/requester.js", "r") as f:
-    webClient_requester_js = f.read()
+    webClient_requester_js = f.read().replace("%%WEB_SERVER_ADDRESS%%", web_server_address)
     f.close()
 
 with open("../webClient/auth_redirect.html", "r") as f:
     webClient_redirect_html = f.read()
     f.close()
+
+with open("../webClient/utils.js", "r") as f:
+    webClient_utils_js = f.read()
+    f.close()
+
 
 def request_access_token(user_auth):
     url = "https://accounts.spotify.com/api/token?"
@@ -38,7 +44,7 @@ def request_access_token(user_auth):
     token_req = request.Request(url, method="POST")
     data = urllib.parse.urlencode({"grant_type": "authorization_code",
                                    "code": user_auth,
-                                   "redirect_uri": "http://192.168.1.20:8888/callback"}).encode()
+                                   "redirect_uri": web_server_address + "/callback"}).encode()
     token_req.add_header("Content-Type", "application/x-www-form-urlencoded")
     token_req.add_header("Authorization", "Basic " + base64.b64encode((client_id + ":" + client_secret)
                                                                       .encode("ascii")).decode("ascii"))
@@ -81,9 +87,11 @@ class Server(BaseHTTPRequestHandler):
 
                 tokens = request_refreshed_token(refresh_token)
 
+                print(tokens)
+
                 self.wfile.write(bytes(webClient_redirect_html
                                        .replace("%%ACCESS_TOKEN%%", tokens["access_token"])
-                                       .replace("%%REFRESH_TOKEN%%", tokens["refresh_token"])
+                                       .replace("%%REFRESH_TOKEN%%", "")
                                        .replace("%%EXPIRES%%", str(tokens["expires_in"])),
                                        "utf-8"))
 
@@ -99,7 +107,7 @@ class Server(BaseHTTPRequestHandler):
             self.wfile.write(bytes(webClient_style, "utf-8"))
         elif url[1] == "page.js":
             self.send_response(200)
-            self.send_header("Content-type", "text/css")
+            self.send_header("Content-type", "text/javascript")
             self.end_headers()
             self.wfile.write(bytes(webClient_page_js, "utf-8"))
         elif url[1] == "requester.js":
@@ -112,16 +120,19 @@ class Server(BaseHTTPRequestHandler):
             self.send_header("Content-type", "text/html")
             self.end_headers()
             self.wfile.write(bytes(webClient_redirect_html, "utf-8"))
+        elif url[1] == "utils.js":
+            self.send_response(200)
+            self.send_header("Content-type", "text/javascript")
+            self.end_headers()
+            self.wfile.write(bytes(webClient_utils_js, "utf-8"))
         else:
             self.send_response(404)
             self.end_headers()
 
 
-
-
 if __name__ == "__main__":
     webServer = HTTPServer((hostName, serverPort), Server)
-    print("Server started http://%s:%s" % (hostName, serverPort))
+    print("Server started", web_server_address)
 
     try:
         webServer.serve_forever()
